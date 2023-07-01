@@ -26,16 +26,18 @@ export default async (req, res) => {
   try {
     // Make the API request
     const response = await axios.get(endpointUrl, { headers, params });
-    const users = response.data.data;
 
-    users.forEach(user => {
-      console.log(`Name: ${user.name}`);
-      console.log(`Screen Name: ${user.username}`);
-      console.log(`Description: ${user.description}`);
-      console.log(`Profile Image URL: ${user.profile_image_url}`);
-      console.log(`Followers Count: ${user.public_metrics.followers_count}`);
-   
+    // Extract the user data from the response
+    const users = response.data.data.map((user) => {
+      return {
+        username: user.username,
+        Name: user.name,
+        bio: user.description,
+        profileImageUrl: user.profile_image_url.replace('_normal', '_400x400'),
+      };
     });
+
+    console.log(users)
 
     res.status(200).json({ users });
   } catch (error) {
@@ -48,4 +50,3 @@ export default async (req, res) => {
     }
   }
 };
-
