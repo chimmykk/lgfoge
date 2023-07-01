@@ -6,20 +6,13 @@ import Image from 'next/image';
 type Status = {
     id: string;
     text: string;
-    user: {
-      name: string;
-      screen_name: string;
-      friends_count: string;
+      Name: string;
+      username: string;
       description: string;
-      profile_image_url: string
+      profileImageUrl: string;
+      bio: string;
+      
     };
-    // entities: {
-    //   media?: Array<{
-    //     id: string;
-    //     media_url_https: string;
-    //   }>;
-    // };
-  };
 
 
 interface SearchProps {
@@ -37,14 +30,22 @@ export default function Search({setIsModalOpen} : SearchProps){
       const formData = new FormData(e.currentTarget);
       const query = formData.get('query');
 
-      const results = await fetch('/api/twitter/search', {
+      const response = await fetch('/api/twitter/search', {
         method: 'POST',
         body: JSON.stringify({
           query
         })
-      }).then(res => res.json());
+      });
 
-      setStatuses(results.data);
+      if (response.ok) {
+        const { users } = await response.json();
+        
+      setStatuses(users);
+      } else {
+        const error = await response.json();
+        throw new Error(error.error);
+      }
+
     }
 
 
@@ -68,13 +69,15 @@ export default function Search({setIsModalOpen} : SearchProps){
                  </form>
 
                  {statuses && (
-                    <div className='flex flex-col gap-5 max-h-[300px] overflow-y-auto '>
-                        { statuses.map(({ id , user }) => {
+                    <div className=' font-inter flex flex-col gap-5 max-h-[300px] overflow-y-auto '>
+                        { statuses.map((user, i) => {
                             return (
-                            <div className=' font-inter' key={id}>
-                                <Link href={`https://twitter.com/${user.screen_name}`}>{ user.name } <span className='text-bgPink'>(@{ user.screen_name })</span></Link>
-                                <Image src={user.profile_image_url} width={100} height={100} alt='img'/>
-                                <p>{user.description}</p>
+                            <div className=' font-inter' key={i}>
+                                <Image src={user.profileImageUrl} width={100} height={100} alt='img'/>
+                                <Link href={`https://twitter.com/${user.username}`}>{ user.Name } <span className='text-bgPink'>(@{ user.username })</span></Link>
+                                <br />
+                                <br />
+                                <p>Bio: {user.bio}</p>
                             </div>
                             );
                         })}
